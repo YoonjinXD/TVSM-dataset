@@ -1,9 +1,11 @@
-import soundfile
-import os
-from sklearn.model_selection import train_test_split
-import numpy as np
 import glob
+import os
+
+import numpy as np
+import soundfile
+from sklearn.model_selection import train_test_split
 from tqdm import tqdm
+
 
 # Calculate the dataset length
 def calculate_dataset_length(dataset_path):
@@ -41,7 +43,7 @@ def split_dataset(dataset_path, split_test=True):
         np.save(os.path.join(dataset_path, 'train.npy'), train_files)
         np.save(os.path.join(dataset_path, 'val.npy'), val_files)
         print(len(train_files), len(val_files))
-#split_dataset('../../data/OpenBMAT/', False)
+# split_dataset('/data5/TVSM_Dataset/TVSM-pseudo/', False)
 
 # resample the whole dataset into 22050 sampling rate
 def resample_audio(dataset_path, des_path):
@@ -94,4 +96,4 @@ def csv_to_npy(dir_path, des_path):
         print(activation_roll.sum(1), activation_roll.shape[-1])
         np.save(os.path.join(des_path, file.replace('csv', 'npy')), activation_roll)
 
-#csv_to_npy('../../data/netflix_whole/', '../../data/netflix_whole/labels/')
+csv_to_npy('/data5/TVSM_Dataset/TVSM-pseudo', '/data5/TVSM_Dataset/TVSM-pseudo/labels')

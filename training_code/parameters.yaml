@@ -21,7 +21,7 @@ ctc_weight: 0.3 # ctc loss wieght
 
 # data augmentation
 input_features: 'mel' # which features as the input ['mel', 'vgg']
-use_pcen: False # use pcen instead of logmel
+use_pcen: True # use pcen instead of logmel
 
 # output
 save_path: 'logger/' # path to store the output model
@@ -29,7 +29,7 @@ pool_size: 2 # output pooling size
 
 # dataset
 dataset: 'netflix' # which dataset to use: [netflix, avaspeech, netflix_whole]
-data_path: '../data/netflix/' # path of the dataset:
+data_path: '/data5/TVSM_Dataset/TVSM-pseudo' # path of the dataset:
 duration: 20 # duration of each chunk
 sr: 16000 # sampling rate of the input audio: [22050 or 16000]
 n_class: 2 # numbers of output classes
