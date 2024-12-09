@@ -1,3 +1,6 @@
 TVSM Datasets/
 .idea
 **/__pycache__/
+.pt
+logger/
+.ipynb
