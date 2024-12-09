@@ -9,7 +9,7 @@ import tqdm
 import CRNN
 import argparse
 import csv
-from utils import mono_check
+import time
 
 sr = 16000
 n_fft = 1024
@@ -50,10 +50,11 @@ class SMDetector:
 
     def predict_audio(self, audio_path):
         y, sr = librosa.load(audio_path, sr=16000, mono=True)
+        audio_duration = librosa.get_duration(y=y, sr=sr) # ADDED: 오디오 파일 길이 출력
+        print(f'Audio duration: {audio_duration:.2f} seconds') # ADDED: 오디오 파일 길이 출력
         y = np.expand_dims(y, 0)
         audio = torch.from_numpy(y).float()
         audio = audio.to(self.device)
-        audio = mono_check(audio)
 
         # check whether the sampling rate is matched
         if sr != 16000:
@@ -90,22 +91,27 @@ class SMDetector:
 
 def export_result(filename, result, format_type='csv'):
     if format_type == 'csv':
-        with open(filename, 'w') as csvfile:
+        with open(filename, 'w', newline='') as csvfile:
+            fieldnames = ['start', 'end', 'label']
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter='\t')
+            writer.writeheader()
             for r in result:
                 if r['music_prob'] > music_threshold:
-                    csvfile.write(r['start_time_s'] + '\t' + r['end_time_s'] + '\t' + 'm' + '\n')
+                    writer.writerow({'start': r['start_time_s'], 'end': r['end_time_s'], 'label': 'm'})
                 if r['speech_prob'] > speech_threshold:
-                    csvfile.write(r['start_time_s'] + '\t' + r['end_time_s'] + '\t' + 's' + '\n')
+                    writer.writerow({'start': r['start_time_s'], 'end': r['end_time_s'], 'label': 's'})
     elif format_type == 'csv_prob':
-        with open(filename, 'w', ) as csvfile:
+        with open(filename, 'w', newline='') as csvfile:
             fieldnames = ['start_time_s', 'end_time_s', 'music_prob', 'speech_prob']
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter='\t')
             writer.writeheader()
             for r in result:
                 writer.writerow(r)
 
 
 def main(audio_path, output_dir, format_type):
+    start_time = time.time()
+
     if not os.path.exists(audio_path):
         print('No such file or directory: ', audio_path)
         return
@@ -124,13 +130,17 @@ def main(audio_path, output_dir, format_type):
 
         for full_path in tqdm.tqdm(all_files):
             file_result = smd.predict_audio(full_path)
-            result_csv_filename = os.path.join(output_dir, os.path.basename(full_path) + '.csv')
+            result_csv_filename = os.path.join(output_dir, os.path.basename(full_path).split('.')[0] + '.csv')
             export_result(result_csv_filename, file_result, format_type)
 
     else:
         file_result = smd.predict_audio(audio_path)
-        result_csv_filename = os.path.join(output_dir, os.path.basename(audio_path) + '.csv')
+        result_csv_filename = os.path.join(output_dir, os.path.basename(audio_path).split('.')[0] + '.csv')
         export_result(result_csv_filename, file_result, format_type)
+
+    end_time = time.time()
+    execution_time = end_time - start_time
+    print(f'Inference time: {execution_time:.2f} 초')
 
 
 if __name__ == '__main__':
